@@ -19,11 +19,11 @@ class DatabaseController {
   }
 
   Future<int> updateTask(TaskModel model) async {
-    return _db.createTask(model);
+    return _db.updateTask(model);
   }
 
   Future<int> deleteTask(TaskModel model) async {
-    return _db.createTask(model);
+    return _db.deleteTask(model);
   }
 
   Future<List<TaskModel>> readAllTasks() async {

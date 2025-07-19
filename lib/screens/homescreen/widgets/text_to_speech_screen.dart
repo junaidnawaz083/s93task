@@ -22,7 +22,7 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
   bool _animate = false;
   String _rescognizedText = '';
   bool _isListenCompleted = false;
-  ParserStatus _status = ParserStatus.invalid;
+  ParserStatus _status = ParserStatus.none;
 
   @override
   void initState() {
@@ -247,14 +247,16 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
 
     if (_stt.isNotListening) {
       _isListenCompleted = true;
-      parseCommand(command: _rescognizedText);
+      setState(() {});
+      await parseCommand(command: _rescognizedText);
+      return;
     } else {}
     setState(() {});
   }
 
-  void parseCommand({required String command}) async {
+  Future<void> parseCommand({required String command}) async {
     ParserModel? model = await ParserService.instance.parseCommand(
-      command: _rescognizedText,
+      command: _rescognizedText.replaceAll('task ', ''),
     );
     if (model == null || model.status == ParserStatus.invalid) {
       _status = ParserStatus.invalid;
@@ -264,25 +266,5 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
     if (model.status == ParserStatus.success) {
       await widget.con.processParserModel(model: model);
     }
-  }
-
-  Future<bool> requestMicrophonePermission() async {
-    var status = await Permission.microphone.status;
-
-    if (status.isGranted) {
-      return true;
-    } else if (status.isDenied) {
-      PermissionStatus newStatus = await Permission.microphone.request();
-      if (newStatus.isGranted) {
-        return true;
-      } else {
-        return false;
-      }
-    } else if (status.isPermanentlyDenied) {
-      openAppSettings(); // Opens the app settings for the user to manually enable.
-    } else if (status.isRestricted) {
-      return false;
-    }
-    return false;
   }
 }

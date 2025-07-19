@@ -23,7 +23,7 @@ class ParserService {
 
   Future<ParserModel?> parseCommand({required String command}) async {
     final prompt =
-        'Parse  \'$command\' and output should be only a json obejct with values  (action, title, date, time, decsription, timestemp) use date and time to get  micro second timestemp';
+        'Parse  \'$command\' and output should be only a json obejct with values  (action, title, date, time, decsription,oldTitle,)';
     print(prompt);
     final content = [Content.text(prompt)];
     final response = await _model.generateContent(content);
@@ -43,12 +43,16 @@ class ParserService {
   }
 
   Future<bool> validateModel(ParserModel model) async {
+    if (model.action == null || model.action == TaskAction.none) return false;
     if (model.action == TaskAction.create) {
-      return model.action != null &&
-          model.timestamp != null &&
-          model.title != null;
+      return model.title != null && model.date != null && model.time != null;
+    } else if (model.action == TaskAction.update) {
+      return model.title != null ||
+          model.date != null ||
+          model.time != null ||
+          model.description != null;
     } else {
-      return model.action != null && model.title != null;
+      return model.title != null;
     }
   }
 }

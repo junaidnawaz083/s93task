@@ -171,9 +171,11 @@ class HomeScreenController extends GetxController {
       );
       return;
     }
+
     if (model.title != null) {
-      matchedModel.time = model.title;
+      matchedModel.title = model.title;
     }
+
     if (model.description != null) {
       matchedModel.description = model.description;
     }
@@ -182,8 +184,11 @@ class HomeScreenController extends GetxController {
     }
     if (model.date != null) {
       matchedModel.date = model.date;
-      matchedModel.timestemp = model.timestamp;
     }
+    matchedModel.timestemp =
+        (tryParseDate('${matchedModel.date!} ${matchedModel.time!}') ??
+                DateTime.now())
+            .microsecondsSinceEpoch;
     await DatabaseController.instance.updateTask(matchedModel);
 
     await readAllTasks();
@@ -191,24 +196,66 @@ class HomeScreenController extends GetxController {
     update();
     Get.showSnackbar(
       GetSnackBar(
-        message: 'Task added successfully',
+        message: 'Task updated successfully',
         icon: Icon(Icons.check, color: Colors.green),
         duration: Duration(seconds: 2),
       ),
     );
   }
 
-  Future<void> deleteTasks({required ParserModel model}) async {}
+  Future<void> deleteTasks({required ParserModel model}) async {
+    TaskModel? matchedModel = await getMatchingTaskModels(model: model);
+    if (matchedModel == null) {
+      Get.back();
+      Get.showSnackbar(
+        GetSnackBar(
+          message: 'Task not found',
+          icon: Icon(Icons.error, color: Colors.yellow),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    await DatabaseController.instance.deleteTask(matchedModel);
+
+    await readAllTasks();
+    Get.back();
+    update();
+    Get.showSnackbar(
+      GetSnackBar(
+        message: 'Task deleted successfully',
+        icon: Icon(Icons.check, color: Colors.green),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
 
   Future<TaskModel?> getMatchingTaskModels({required ParserModel model}) async {
     TaskModel? matchedModel;
-    if (model.title != null) {
+    String? title = model.title;
+    if (title == null) {
+      return null;
+    }
+    if (model.oldTitle != null) {
+      title = model.oldTitle!;
+    }
+    title = title.toLowerCase();
+
+    matchedModel = taskList.firstWhere(
+      (e) => (e.title ?? '').toLowerCase() == title,
+      orElse: () => TaskModel(),
+    );
+    if (matchedModel.id != null) {
+      return matchedModel;
+    }
+    if (title.contains('task')) {
+      title = title.replaceFirst('task', '').replaceAll(' ', '');
       matchedModel = taskList.firstWhere(
-        (e) =>
-            (e.title ?? '').toLowerCase() == (model.title ?? '').toLowerCase(),
+        (e) => (e.title ?? '').toLowerCase().replaceAll(' ', '') == title,
+        orElse: () => TaskModel(),
       );
     }
 
-    return matchedModel;
+    return matchedModel.id == null ? null : matchedModel;
   }
 }

@@ -21,7 +21,7 @@ class TaskModel {
     date = json['date'];
     time = json['time'];
     description = json['description'];
-    timestemp = json['timestemp'];
+    timestemp = json['timestemp'] ?? DateTime.now().microsecondsSinceEpoch;
   }
 
   Map<String, dynamic> toJson() {

@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 class ParserModel {
   TaskAction? action;
   String? title;
+  String? oldTitle;
+
   String? date;
   String? time;
   String? description;
@@ -17,6 +19,7 @@ class ParserModel {
     this.time,
     this.description,
     this.timestamp,
+    this.oldTitle,
     this.status,
   });
 
@@ -27,14 +30,24 @@ class ParserModel {
               ? null
               : TaskAction.values.byName(json['action']);
     } catch (e) {
-      print(e);
       action = TaskAction.none;
     }
     title = json['title'];
-    date = json['date'];
-    time = json['time'];
+    oldTitle = json['oldTitle'];
+
     description = json['description'];
-    timestamp = json['timestamp'];
+
+    time = json['time'];
+    if (time == null) return;
+    time = time!.replaceAll('p.m.', 'PM');
+    time = time!.replaceAll('a.m.', 'AM');
+    date = json['date'];
+    if (date == null) return;
+    DateTime? datetime = tryParseDate('${date!} ${time!}');
+
+    if (datetime == null) return;
+
+    timestamp = datetime.microsecondsSinceEpoch;
   }
 
   Map<String, dynamic> toJson() {
@@ -47,24 +60,44 @@ class ParserModel {
     data['timestamp'] = timestamp;
     return data;
   }
+}
 
-  DateTime? tryParseDate(String input) {
-    List<String> formats = [
-      "yyyy-MM-dd HH:mm:ss",
-      "yyyy-MM-dd",
-      "MM/dd/yyyy",
-      "dd-MM-yyyy",
-      "MMMM d, yyyy h:mm a", // July 19, 2025 2:30 PM
-      "EEE, d MMM yyyy HH:mm:ss", // Sat, 19 Jul 2025 14:30:00
-    ];
+DateTime? tryParseDate(String input) {
+  List<String> timeFormets = [
+    'HH:mm',
+    'h:mm a',
+    'h:mm aaaa',
+    'HH:mm:ss',
+    'h a',
+  ];
+  List<String> dateFormats = [
+    'EEEE, MMM d, yyyy',
+    'MM-dd-yyyy',
+    'd MMM yyyy',
+    'd MM, yyyy',
+    'd MMM, yyyy',
 
-    for (String format in formats) {
+    'd MM yyyy',
+    "yyyy-MM-dd",
+    'yyyy/MM/dd',
+    'yyyy-MM-dd',
+    'dd.MM.yy',
+    "MM/dd/yyyy",
+    "dd-MM-yyyy",
+    "MMMM d, yyyy",
+    "EEE, d MMM yyyy",
+  ];
+  input = input.replaceAll('p.m.', 'PM');
+  input = input.replaceAll('a.m.', 'AM');
+
+  for (String date in dateFormats) {
+    for (String time in timeFormets) {
       try {
-        return DateFormat(format).parseStrict(input);
+        return DateFormat('$date $time').parseStrict(input);
       } catch (_) {
         continue;
       }
     }
-    return null; // or throw an error
   }
+  return null;
 }

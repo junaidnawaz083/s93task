@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:s93task/controllers/home_screen_controller.dart';
 import 'package:s93task/screens/homescreen/widgets/task_card.dart';
 import 'package:s93task/screens/homescreen/widgets/text_to_speech_screen.dart';
@@ -12,14 +13,15 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-            isScrollControlled: true,
-            context: context,
-            builder: (ctx) {
-              return TextToSpeechScreen(con: _con);
-            },
-          );
+        onPressed: () async {
+          if (await requestMicrophonePermission())
+            showModalBottomSheet(
+              isScrollControlled: true,
+              context: context,
+              builder: (ctx) {
+                return TextToSpeechScreen(con: _con);
+              },
+            );
         },
         backgroundColor: Colors.amber,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
@@ -31,6 +33,30 @@ class HomeScreen extends StatelessWidget {
             (_) =>
                 _con.loading
                     ? Center(child: CircularProgressIndicator())
+                    : _con.taskList.isEmpty
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'No task found!',
+                            style: TextStyle(
+                              // color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'click on mic to record your command',
+                            style: TextStyle(
+                              // color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
                     : SizedBox(
                       width: context.width,
                       height: context.height,
@@ -70,5 +96,25 @@ class HomeScreen extends StatelessWidget {
     return time1.day != time2.day ||
         time1.month != time2.month ||
         time1.year != time2.year;
+  }
+
+  Future<bool> requestMicrophonePermission() async {
+    var status = await Permission.microphone.status;
+
+    if (status.isGranted) {
+      return true;
+    } else if (status.isDenied) {
+      PermissionStatus newStatus = await Permission.microphone.request();
+      if (newStatus.isGranted) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (status.isPermanentlyDenied) {
+      openAppSettings(); // Opens the app settings for the user to manually enable.
+    } else if (status.isRestricted) {
+      return false;
+    }
+    return false;
   }
 }

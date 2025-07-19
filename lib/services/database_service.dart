@@ -10,9 +10,9 @@ class DatabaseService {
       closeDatabse();
     }
     _db = await openDatabase(
-      'task1.db',
+      'task2.db',
 
-      version: 1,
+      version: 2,
       onCreate: (a, version) async {
         await a.execute(
           'CREATE TABLE Task (id INTEGER PRIMARY KEY, title TEXT, description TEXT,date TEXT, time TEXT,timestemp INTEGER)',
