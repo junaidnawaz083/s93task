@@ -6,13 +6,7 @@ import 'package:s93task/models/parser_model.dart';
 import 'package:s93task/models/task_model.dart';
 
 class HomeScreenController extends GetxController {
-  bool _loading = false;
-
-  bool get loading => _loading;
-
-  set loading(bool value) {
-    _loading = value;
-  }
+  bool loading = false;
 
   List<TaskModel> taskList = [];
 

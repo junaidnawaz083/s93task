@@ -24,7 +24,7 @@ class ParserService {
   Future<ParserModel?> parseCommand({required String command}) async {
     final prompt =
         'Parse  \'$command\' and output should be only a json obejct with values  (action, title, date, time, decsription,oldTitle,)';
-    print(prompt);
+
     final content = [Content.text(prompt)];
     final response = await _model.generateContent(content);
     var res = response.text ?? "No relevant information extracted.";

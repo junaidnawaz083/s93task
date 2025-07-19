@@ -14,14 +14,16 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          if (await requestMicrophonePermission())
+          if (await requestMicrophonePermission()) {
             showModalBottomSheet(
               isScrollControlled: true,
+              // ignore: use_build_context_synchronously
               context: context,
               builder: (ctx) {
                 return TextToSpeechScreen(con: _con);
               },
             );
+          }
         },
         backgroundColor: Colors.amber,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:s93task/consts/enums.dart';
 import 'package:s93task/controllers/home_screen_controller.dart';
 import 'package:s93task/models/parser_model.dart';
@@ -214,11 +213,7 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
   }
 
   Future<void> _initSTT() async {
-    bool res = await _stt.initialize(
-      onStatus: (status) {
-        print(status);
-      },
-    );
+    bool res = await _stt.initialize(onStatus: (status) {});
     if (!res) {
       Get.back();
       Get.showSnackbar(
