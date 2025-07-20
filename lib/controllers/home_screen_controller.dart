@@ -5,7 +5,7 @@ import 'package:s93task/consts/enums.dart';
 import 'package:s93task/controllers/database_controller.dart';
 import 'package:s93task/models/parser_model.dart';
 import 'package:s93task/models/task_model.dart';
-import 'package:s93task/services/parser_service.dart';
+import 'package:s93task/services/llm_service.dart';
 import 'package:s93task/services/speech_to_text_service.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 
@@ -44,7 +44,7 @@ class HomeScreenController extends GetxController {
   }
 
   Future<void> parseCommand({required String command}) async {
-    ParserModel? model = await ParserService.instance.parseCommand(
+    LLMModel? model = await LLMService.instance.parseCommand(
       command: rescognizedText.replaceAll('task ', ''),
     );
     if (model == null || model.status == ParserStatus.invalid) {
@@ -66,7 +66,7 @@ class HomeScreenController extends GetxController {
     listenToSpeech();
   }
 
-  Future<void> processParserModel({required ParserModel model}) async {
+  Future<void> processParserModel({required LLMModel model}) async {
     switch (model.action) {
       case null:
         Get.back();
@@ -170,7 +170,7 @@ class HomeScreenController extends GetxController {
     update();
   }
 
-  Future<void> createTask({required ParserModel model}) async {
+  Future<void> createTask({required LLMModel model}) async {
     var res = await DatabaseController.instance.createTask(
       TaskModel(
         title: model.title,
@@ -202,7 +202,7 @@ class HomeScreenController extends GetxController {
     );
   }
 
-  Future<void> updateTasks({required ParserModel model}) async {
+  Future<void> updateTasks({required LLMModel model}) async {
     TaskModel? matchedModel = await getMatchingTaskModels(model: model);
     if (matchedModel == null) {
       Get.back();
@@ -247,7 +247,7 @@ class HomeScreenController extends GetxController {
     );
   }
 
-  Future<void> deleteTasks({required ParserModel model}) async {
+  Future<void> deleteTasks({required LLMModel model}) async {
     TaskModel? matchedModel = await getMatchingTaskModels(model: model);
     if (matchedModel == null) {
       Get.back();
@@ -274,7 +274,7 @@ class HomeScreenController extends GetxController {
     );
   }
 
-  Future<TaskModel?> getMatchingTaskModels({required ParserModel model}) async {
+  Future<TaskModel?> getMatchingTaskModels({required LLMModel model}) async {
     TaskModel? matchedModel;
     String? title = model.title;
     if (title == null) {

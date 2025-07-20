@@ -3,16 +3,16 @@ import 'dart:developer';
 
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:s93task/consts/enums.dart';
-import 'package:s93task/models/parser_model.dart';
+import 'package:s93task/models/llm_model.dart';
 
-class ParserService {
-  static final ParserService instance = ParserService._internal();
+class LLMService {
+  static final LLMService instance = LLMService._internal();
 
-  factory ParserService() {
+  factory LLMService() {
     return instance;
   }
 
-  ParserService._internal();
+  LLMService._internal();
 
   final _apiKey = 'AIzaSyBwcUcND3PPrO7dfyhppTabxJS6y1FZAxc';
   late GenerativeModel _model;
@@ -21,7 +21,7 @@ class ParserService {
     _model = GenerativeModel(model: 'gemini-2.0-flash', apiKey: _apiKey);
   }
 
-  Future<ParserModel?> parseCommand({required String command}) async {
+  Future<LLMModel?> parseCommand({required String command}) async {
     final prompt =
         'Parse  \'$command\' and output should be only a json obejct with values  (action, title, date, time, decsription,oldTitle,)';
 
@@ -30,7 +30,7 @@ class ParserService {
     var res = response.text ?? "No relevant information extracted.";
     String result = "${res.substring(res.indexOf('{'), res.indexOf('}'))}}";
 
-    var parserModel = ParserModel.fromJson(
+    var parserModel = LLMModel.fromJson(
       jsonDecode(result.replaceAll('\n', '')),
     );
     log(parserModel.toJson().toString());
@@ -42,7 +42,7 @@ class ParserService {
     return parserModel;
   }
 
-  Future<bool> validateModel(ParserModel model) async {
+  Future<bool> validateModel(LLMModel model) async {
     if (model.action == null || model.action == TaskAction.none) return false;
     if (model.action == TaskAction.create) {
       return model.title != null && model.date != null && model.time != null;

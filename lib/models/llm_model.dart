@@ -1,7 +1,7 @@
 import 'package:s93task/consts/enums.dart';
 import 'package:intl/intl.dart';
 
-class ParserModel {
+class LLMModel {
   TaskAction? action;
   String? title;
   String? oldTitle;
@@ -12,7 +12,7 @@ class ParserModel {
   int? timestamp;
   ParserStatus? status;
 
-  ParserModel({
+  LLMModel({
     this.action,
     this.title,
     this.date,
@@ -23,7 +23,7 @@ class ParserModel {
     this.status,
   });
 
-  ParserModel.fromJson(Map<String, dynamic> json) {
+  LLMModel.fromJson(Map<String, dynamic> json) {
     try {
       action =
           json['action'] == null
