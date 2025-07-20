@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:s93task/consts/enums.dart';
 import 'package:s93task/controllers/database_controller.dart';
-import 'package:s93task/models/parser_model.dart';
+import 'package:s93task/models/llm_model.dart';
 import 'package:s93task/models/task_model.dart';
 import 'package:s93task/services/llm_service.dart';
 import 'package:s93task/services/speech_to_text_service.dart';

@@ -23,7 +23,7 @@ class LLMService {
 
   Future<LLMModel?> parseCommand({required String command}) async {
     final prompt =
-        'Parse  \'$command\' and output should be only a json obejct with values  (action, title, date, time, decsription,oldTitle,)';
+        'Parse  \'$command\' and output should be only a json obejct with values  (action, title, date, time, decsription,oldTitle,) and formet date and time, ignore seconds';
 
     final content = [Content.text(prompt)];
     final response = await _model.generateContent(content);
