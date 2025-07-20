@@ -1,19 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:s93task/consts/enums.dart';
 import 'package:s93task/controllers/database_controller.dart';
 import 'package:s93task/models/parser_model.dart';
 import 'package:s93task/models/task_model.dart';
+import 'package:s93task/services/parser_service.dart';
+import 'package:s93task/services/speech_to_text_service.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
 
 class HomeScreenController extends GetxController {
   bool loading = false;
+  final _sst = SpeechToTextService();
+  bool animate = false;
+  String rescognizedText = '';
+  bool isListenCompleted = false;
+  ParserStatus status = ParserStatus.none;
 
   List<TaskModel> taskList = [];
 
   @override
   void onInit() async {
     super.onInit();
+    await _sst.initSTT();
     await readAllTasks();
+  }
+
+  Future<void> listenToSpeech() async {
+    await _sst.startListening(_onSpeechResult);
+  }
+
+  Future<void> _onSpeechResult(SpeechRecognitionResult result) async {
+    rescognizedText = result.recognizedWords;
+    animate = true;
+
+    if (!await _sst.isListining()) {
+      isListenCompleted = true;
+      update();
+      await parseCommand(command: rescognizedText);
+      return;
+    } else {}
+    update();
+  }
+
+  Future<void> parseCommand({required String command}) async {
+    ParserModel? model = await ParserService.instance.parseCommand(
+      command: rescognizedText.replaceAll('task ', ''),
+    );
+    if (model == null || model.status == ParserStatus.invalid) {
+      status = ParserStatus.invalid;
+      update();
+      return;
+    }
+    if (model.status == ParserStatus.success) {
+      await processParserModel(model: model);
+    }
+  }
+
+  Future<void> tryAgain() async {
+    status = ParserStatus.none;
+    animate = false;
+    isListenCompleted = false;
+    rescognizedText = '';
+    update();
+    listenToSpeech();
   }
 
   Future<void> processParserModel({required ParserModel model}) async {
@@ -251,5 +301,37 @@ class HomeScreenController extends GetxController {
     }
 
     return matchedModel.id == null ? null : matchedModel;
+  }
+
+  bool checkDate(int index) {
+    DateTime time1 = DateTime.fromMicrosecondsSinceEpoch(
+      taskList[index].timestemp!,
+    );
+    DateTime time2 = DateTime.fromMicrosecondsSinceEpoch(
+      taskList[index - 1].timestemp!,
+    );
+    return time1.day != time2.day ||
+        time1.month != time2.month ||
+        time1.year != time2.year;
+  }
+
+  Future<bool> requestMicrophonePermission() async {
+    var status = await Permission.microphone.status;
+
+    if (status.isGranted) {
+      return true;
+    } else if (status.isDenied) {
+      PermissionStatus newStatus = await Permission.microphone.request();
+      if (newStatus.isGranted) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (status.isPermanentlyDenied) {
+      openAppSettings(); // Opens the app settings for the user to manually enable.
+    } else if (status.isRestricted) {
+      return false;
+    }
+    return false;
   }
 }
